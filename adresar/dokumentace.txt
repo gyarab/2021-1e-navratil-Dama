@@ -1,0 +1,270 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{url}
+\begin{document}
+\title{ Ročníkový projekt - Dáma\\
+        Gymnázium Arabská}
+        
+        \author{Felix Navrátil\\
+        Vyučující: Mgr. Jan Lána\\
+        Předmět programování}
+\date{Duben 2022}
+
+
+
+
+
+
+\maketitle
+\begin{center}
+        \includegraphics[width = \textwidth ]{download.png}
+\end{center}
+\newpage
+\tableofcontents
+\newpage
+\section{Anotace}
+Tento ročníkový projekt zahrnuje, jak jsem naprogramoval zjednodušenou dámu. Zde vás seznámím s problémy
+např.: jak vyřešit pravidla pomocí počítače, pohyb figurek nebo střídání hráčů. A jak jsem problémy vyřešil nebo nevyřešil.
+
+
+\section{Úvod}
+Za ročníkový projekt jsem si vybral dámu, protože mě baví ji hrát a také jsem si myslel že to nebude tak složité. Cíl mého ročníkového projektu byl naprogramovat dámy. Jako IDE jsem používal 
+IntelliJ idea a jako programovací jazyk jsem používal Java a na grafiku jsem používal JavaFX. Při programování jsem narazil na mnoho problémů(např.: Rozmístění figurek, střídání hráčů nebo pohyb figurek) a zde vás seznámím jak jsem problémy vyřešil nebo nevyřešil.
+\begin{center}
+    \includegraphics[width= 0.7\textwidth]{Dama.PNG}
+\end{center}
+
+
+
+
+
+
+\section{Pravidla a obecné informace}
+Dáma je hra pro dva hráče a hraje na šachovnici 8x8. Každý hráč má vlastní sadu figurek, jeden má bílé a druhý má červené. Figurky se mohou pohybovat diagonálně o jedno pole, nebo můžou přeskočit nepřátelskou figurku a tím ji zabijí a vyřadí ze hry. V normální dámě hra končí, když jednomu hráči nezbývají žádné figurky, ale podle mých pravidel hra končí, když se jeden hráč dostane na poslední pole relativně z pohledu hráče.
+
+\newpage
+
+\section{Vytváření šachovnice}
+Jako první jsem definoval 3 parametry: 1. \textit{tileSize} tento parametr značí jak velké je jedno pole šachovnice, 2. \textit{width} značí kolik polí bude šachovnice mít na šířku, 3. \textit{height} značí kolik polí bude mít šachovnice na výšku. Potom jsem Vytvořil třídu \textit{Tile}, která je potomkem třídy \textit{Rectangle}. Tam jsem nadefinoval konstruktor a metody \textit{setPiece}, \textit{hasPiece}, \textit{getPIece}. Metoda \textit{setPiece} připíše danou figurku na dané pole, metoda \textit{hasPiece} zjistí jestli dané pole má figurkunebo ne a metoda \textit{getPiece} se použije tehdy, když chceme nakládat i s metodama, které jsou ve třídě \textit{Piece}.
+Konstruktor:
+\begin{verbatim}
+
+    setWidth(tileSize);
+        setHeight(tileSize);
+        setLayoutX(x * tileSize);
+        setLayoutY(y * tileSize);
+        setFill(light ? Color.WHITE : Color.BLACK);
+\end{verbatim}
+Šachovnici jsem potom vytvořil pomocí dvou for smyček. Jestli je součet \textit{X} a \textit{Y} dělitelný 2 tak je pole bíle jestli ne tak je pole červené.
+src:
+\begin{verbatim}
+    for (int y = 0; y < 8; y++) {
+        for (int x = 0; x < 8; x++) {
+            Tile tile = new Tile((x + y) % 2 == 0, x, y);
+            board[x][y] = tile;
+            tileGroup.getChildren().add(tile);
+                
+                
+        }
+    }
+\end{verbatim}
+
+\newpage
+
+\section{Vytváření figurek}
+Vytvořil jsem třídu \textit{Piece} a enum \textit{PieceType}\cite{AlmasBaimagambetov}, v enumu PieceType jsem nadefinoval typ figurky(bíla a červená) a int \textit{moveDir}, který definuje jak se jaka figurka bude pohybovat po vertikální ose.
+    \begin{verbatim}
+    RED(1), WHITE(-1);
+    
+    final int moveDir;
+
+    PieceType(int moveDir) {
+        this.moveDir = moveDir;
+    }
+    \end{verbatim}
+
+V třídě \textit{Piece} jsem nadefinoval konstruktor. V konstruktoru jsem vytvořil kruh o poloměru rovném \textit{(1/2)*tileSize}, kterému jsem dal barvu podle typu figurky.
+\begin{verbatim}
+    piece.setFill(type == PieceType.RED ? Color.RED : Color.WHITE);
+\end{verbatim}
+Také jsem našel\cite{AlmasBaimagambetov} pravidla co se bude dít, když se na figurku klikne nebo s ní bude chtít někdo pohnout. 
+V kódu to vypadá takto
+
+    \begin{verbatim}
+    setOnMousePressed(e -> {
+            mouseX = e.getSceneX();
+            mouseY = e.getSceneY();
+            //e.getSceneY/X zjistí momentalni polohu figurky když se na ní klikne 
+        });
+
+        setOnMouseDragged(e -> {
+            setLayoutY(e.getSceneY() - mouseY + oldY);
+            setLayoutX(e.getSceneX() - mouseX + oldX);
+            
+            //oldY/X je zacatecni poloha figurky
+        });
+    \end{verbatim}
+V třídě \textit{Piece} jsem také napsal metody \cite{AlmasBaimagambetov}: \textit{move, getOldX, getOldY, abortMove, getType}. Metoda \textit{move} přemístí figurku na její staré koordinace(\textit{oldX/Y}, metoda \textit{getOldX} vrátí hodnotu oldX stejně jako \textit{getOldY}, která vrátí hodnotu \textit{oldY}. Metoda \textit{abortMove} vrátí figurku na její staré koordinace(\textit{oldX,OldY})
+a metoda \textit{getType} zjistí jaký je typ figurky.
+
+\subsection{Rozmístění figurek}
+Figurky jsem rozmístil pomocí stejné for smyčky, kterou jsem použil na vytvoření šachovnice.
+Figurky jsem položil na černá pole vždy na 3 první řádky relativně od pohledu hráče.
+
+\section{Pohyb\cite{AlmasBaimagambetov}}
+Pohyb figurky je rozdělen do dvou metod, \textit{tryMove} a \textit{makePiece}.
+Metoda \textit{tryMove}, určuje podmínky kam se figurky mohou pohybovat a kam ne a metoda \textit{makePiece} jenom připíše danou figurku na dané pole a odstraní ji z předešlého pole a to jsem udělal pomocí funkce \textit{switch}.
+
+\subsection{Žádný}
+Žádný pohyb může nastat jedině když se nesplní podmínka pro pohyb \textit{normální} nebo \textit{zabití}.  
+V metodě \textit{tryMove} vypada kód takto:
+\begin{verbatim}
+    if (board[newX][newY].hasPiece() || (newX + newY) % 2 == 0) {
+            return new MoveResult(MoveType.NONE);
+        }
+\end{verbatim}
+Tento kód zjistí jestli pole, na které chce hráč figurku upustit, má už k sobě připsanou figurku nebo má bílou barvu. Jestli figurka tyto podmínky splňuje tak se zavolá tahle část kódu:
+\begin{verbatim}
+    case NONE:
+        piece.abortMove();
+        break;
+\end{verbatim}
+
+\subsection{Normální}
+Normální pohyb figurky je o jedno místo diagonálně dopředu. Pomocí kódu je to napsáno takhle
+\begin{verbatim}
+\cite{AlmasBaimagambetov}!!!!
+    int startX = boardCoords(piece.getOldX());
+    int startY = boardCoords(piece.getOldY());
+    
+    ((newX - startX) == 1 || (newX - startX) == -1 )
+    && newY - startY == piece.getType().moveDir
+    
+    //startX/Y jsou koordinace na šachovnici typu a1 b2 nebo f6
+    //getOldX/Y je metoda, která vrátí hodnotu oldX/Y
+    //movedir je podle buď -1 nebo 1 podle typu figurky 
+    //newX/Y je poloha ve které se figurka právě nachází
+\end{verbatim}
+\newpage
+Tento kód udělá přesně to, co je v pravidlech. Zjistí jestli je nová poloha figurky vzdálená od staré polohy figurky -1 nebo 1 pole a jestli je vertikalní poloha -1 nebo 1 podle typu figurky.
+Jestli tyto podmínky figurka splňuje tak se zavolá tahle část kódu:
+
+\begin{verbatim}
+case NORMAL:
+    piece.move(newX, newY);
+    board[startX][startY].setPiece(null);
+    board[newX][newY].setPiece(piece);
+    currentPlayer = redPlayer;
+    break;
+\end{verbatim}
+
+
+\subsection{Zabití}
+Figurka "zabije" nepřátelskou figurku, když jí přeskočí. To znamená, že se pohne o 2 místa po ose X a o 2 místa po ose Y. To je napsáno v metodě \textit{tryMove} takto:
+
+\begin{verbatim}
+\cite{AlmasBaimagambetov}
+    else if (((newX - startX) == 2 || (newX - startX) == -2 ) 
+    && newY - startY == piece.getType().moveDir * 2) {
+
+            int x1 = startX + (newX - startX) / 2;
+            int y1 = startY + (newY - startY) / 2;
+
+            if (board[x1][y1].hasPiece() 
+            && board[x1][y1].getPiece().getType() != piece.getType()) {
+                return new MoveResult(MoveType.KILL, board[x1][y1].getPiece());
+            }
+        }
+        //x1/y1 jsou souřadnice vyřazené figurky 
+\end{verbatim}
+
+První podmínka značí, kam se může figurka pohnout tedy rozdíl současných souřadnic figurky a počátečních souřadnic figurky se  musí rovnat 2 nebo -2 a vertikální souřadnice se musí rovnat 2*\textit{moveDir} a to je buď -2 nebo 2. Druhá podmínka značí, kdy se první podmínka může uskutečnit, a to jen tehdy když je na souřadnicích \textit{x1} a \textit{y1} figurka jiné barvy.
+V metodě \textit{makePiece} kód vypada takto:
+\begin{verbatim}
+case KILL:
+    piece.move(newX, newY);
+    board[startX][startY].setPiece(null);
+    board[newX][newY].setPiece(piece);
+    Piece otherPiece = result.getPiece();
+    board[boardCoords(otherPiece.getOldX())][boardCoords(otherPiece.getOldY())]
+    .setPiece(null);
+    pieceGroup.getChildren().remove(otherPiece);
+    currentPlayer = redPlayer;
+    break;
+\end{verbatim}
+
+\section{Sřídání hráčů}
+Vytvořil jsem si třídu \textit{Player} a nadefinoval jsem v ní konstruktor:
+\begin{verbatim}
+    PieceType allowedPieceType;
+    
+    public Player(PieceType allowedPieceType){
+        this.allowedPieceType=allowedPieceType;
+    }
+\end{verbatim}
+Potom jsem si ve třídě \textit{HelloApplication} vytvořil 3 objekty třídy \textit{Player}:
+\begin{verbatim}
+    public Player currentPlayer=null;
+    public Player redPlayer = new Player(PieceType.RED);
+    public Player whitePlayer = new Player(PieceType.WHITE);
+\end{verbatim}
+Hrát může vždy jen \textit{currentPlayer}, který je ze začátku roven objektu \textit{whitePlayer}.
+Ale to se změní po tahu \textit{normální} nebo \textit{zabití}. 
+A zde můžete vidět podmínky, podle kterých se určuje jaký typ figurek může být tažen.
+\begin{verbatim}
+    if (currentPlayer == whitePlayer && PieceType.WHITE == type)
+    if (currentPlayer == redPlayer && type == PieceType.RED)
+\end{verbatim}
+Jestli se nesplní tyto podmínky, tak funkce \textit{switch}, v každém případě(\textit{NORMAL, KILL, NONE}) bude volat metodu \textit{abortMove}.
+
+\section{Výhra}
+Podle pravidel hráč vyhraje tehdy, když se dostane na poslední pole šachovnice. To jsem pomocí počítače vyřešil takto:
+\begin{verbatim}
+    if (newY == 7 || newY == 0) {
+        Label l = new Label("WIN");
+        Label p = new Label(" ");
+        p.setTranslateY(0);
+        p.setTranslateX(0);
+        p.setPrefSize(width * tileSize, height * tileSize);
+        l.setTranslateX(tileSize);
+        l.setTextFill(Color.BLUE);
+        l.setFont(new Font("Arial", 300));
+        System.out.println("vyhra");
+        pieceGroup.getChildren().addAll(l, p);
+    }
+\end{verbatim}
+Tento kód se zavolá pokaždé když se figurka pohne pohybem \textit{NORMAL} nebo \textit{KILL}.
+\textit{Label l} má za účel napsal velkým písmem na okno \textit{WIN} a \textit{Label p} má za účel zabránit hráči aby klikal na figurky a pohyboval s nimi.
+\section{Slepé cesty}
+
+\subsection{První pokus}
+Měl jsem nápad, že každé samostatné pole a každá figurka bude tlačítko. Všechny tlačítka, které sloužili jako pole jsem jsem vypnul pomocí metody\textit{ setDisable(true)}, aby je hráč nemohl zmáčknout . Když by hráč klikl na figurku tak by se změnila metoda z \textit{setDisable(true)} na \textit{setDisable(false)}, ale jen u polí, které jsou jedno pole diagonálně od figurky. Když by hráč klikl na dané pole tak by se figurka přemístila na lokaci daného pole.  Tento nápad jsem nepoužil, protože jsem nevěděl jak mám udělat podmínky pro přeskakování figurek a jak mám poznat jestli pole má k sobě připsanou figurku.
+
+\subsection{Druhý pokus}
+Na rozdíl od prvního pokusu jsem šachovnici vytvořil stejně jako v kapitole \textit{Vytváření šachovnice}, ale jako figurky jsem znova použil tlačítka. Pohyb jsem chtěl udělat podobně jako v kapitole \textit{Pohyb}, ale nevytvořil jsem si k tomu metody, které byli jak jsem zjistil klíčové. A to byl problém, kvůli kterému jsem tento pokus vzdal.
+
+\section{Závěr}
+Jako téma ročníkové práce jsem si zvolil deskovou hru dámu, protože jsem si myslel, že to nebude až tak složité. Avšak když jsem začal programovat, tak jsem si uvědomil, že to co i dítě 2. třídy pochopí za několik minut, není tak jednoduché vysvětlit počítači. Při programování jsem narazil na mnoho problémů, a většina z nich mě velmi zaujala.
+
+
+\section{Zdroje}
+\url{https://www.youtube.com/watch?v=6S6km5duBrM}
+
+\url{https://www.tutorialspoint.com/javafx/layout_gridpane.htm}
+
+\url{https://jenkov.com/tutorials/javafx/button.html}
+
+\url{https://jenkov.com/tutorials/javafx/gridpane.html}
+
+\url{http://www.java2s.com/ref/java/javafx-gridpane-create-chess-board.html}
+
+\url{https://www.youtube.com/watch?v=YaDkj-bqcj8&t=106s}
+
+\url{https://www.youtube.com/watch?v=8ECA5oowJhA}
+
+\bibliographystyle{plain}
+\bibliography{Citace}
+
+\end{document}
